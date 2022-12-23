@@ -151,6 +151,7 @@ export const allowedAdminProductFields = [
     'profile_id',
     'collection_id',
     'type_id',
+    'type',
     'weight',
     'length',
     'height',

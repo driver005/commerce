@@ -1,0 +1,1 @@
+import"./index.9baa07f0.js";function c(r){try{if(r.split(".").length!==3||typeof r!="string")return null;var e=r.split(".")[1],t="=".repeat((4-e.length%4)%4),a=e.replace("-","+").replace("_","/")+t,l=JSON.parse(atob(a));return l}catch{return null}}export{c as d};

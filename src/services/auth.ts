@@ -109,7 +109,7 @@ class AuthService extends TransactionBaseService {
                     .retrieveByEmail(email, {
                         select: ['password_hash'],
                     })
-
+                
                 const passwordsMatch = await this.comparePassword_(
                     password,
                     userPasswordHash.password_hash

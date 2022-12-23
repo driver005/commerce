@@ -107,14 +107,6 @@ function getResolvedPlugins(
         return details
     })
 
-    resolved.push({
-        resolve: `${rootDirectory}`,
-        name: `project-plugin`,
-        id: createPluginId(`project-plugin`),
-        options: {},
-        version: createFileContentHash(process.cwd(), `**`),
-    })
-
     return resolved
 }
 
@@ -146,7 +138,7 @@ async function runLoaders(
     await Promise.all(
         loaderFiles.map(async (loader) => {
             try {
-                const module = require(loader).default
+                const module = require(path.join(pluginDetails.resolve, loader)).default
                 if (typeof module === 'function') {
                     await module(container, pluginDetails.options)
                 }
@@ -178,7 +170,7 @@ export function registerStrategies(
     const registeredServices = {}
 
     files.map((file) => {
-        const module = require(file).default
+        const module = require(path.join(pluginDetails.resolve, file)).default
 
         switch (true) {
             case isTaxCalculationStrategy(module.prototype): {
@@ -342,7 +334,7 @@ function registerApi(
     try {
         const routes = require(`${pluginDetails.resolve}/api`).default
         if (routes) {
-            app.use('/', routes(rootDirectory, pluginDetails.options))
+            app.use('/api/', routes(rootDirectory, pluginDetails.options))
         }
         return app
     } catch (err) {
@@ -378,18 +370,19 @@ export async function registerServices(
     
     await Promise.all(
         files.map(async (fn) => {
-            const loaded = require(require.resolve(fn)).default
+            const loaded = require(path.join(pluginDetails.resolve, fn)).default
             const name = formatRegistrationName(fn)
-
-            if (
-                !(loaded.prototype instanceof LegacyBaseService) &&
-                !(loaded.prototype instanceof BaseService)
-            ) {
-                const logger = container.resolve<Logger>('logger')
-                const message = `The class must be a valid service implementation, please check ${fn}`
-                logger.error(message)
-                throw new Error(message)
-            }
+            
+            //TODO: Check if libary inherit from BaseService
+            // if (
+            //     !(loaded.prototype instanceof LegacyBaseService) &&
+            //     !(loaded.prototype instanceof BaseService)
+            // ) {
+            //     const logger = container.resolve<Logger>('logger')
+            //     const message = `The class must be a valid service implementation, please check ${fn}`
+            //     logger.error(message)
+            //     throw new Error(message)
+            // }
 
             if (isPaymentService(loaded.prototype)) {
                 // Register our payment providers to paymentProviders
@@ -515,7 +508,7 @@ function registerSubscribers(
 ): void {
     const files = glob.sync(`./subscribers/*.js`,  { cwd: pluginDetails.resolve })
     files.forEach((fn) => {
-        const loaded = require(fn).default
+        const loaded = require(path.join(pluginDetails.resolve, fn)).default
 
         container.build(
             asFunction(
@@ -540,7 +533,7 @@ function registerRepositories(
 ): void {
     const files = glob.sync(`./repositories/*.js`,  { cwd: pluginDetails.resolve })
     files.forEach((fn) => {
-        const loaded = require(fn) as ClassConstructor<unknown>
+        const loaded = require(path.join(pluginDetails.resolve, fn)) as ClassConstructor<unknown>
 
         Object.entries(loaded).map(
             ([, val]: [string, ClassConstructor<unknown>]) => {
@@ -572,7 +565,7 @@ function registerModels(
 ): void {
     const files = glob.sync(`./models/*.js`,  { cwd: pluginDetails.resolve })
     files.forEach((fn) => {
-        const loaded = require(fn) as ClassConstructor<unknown> | EntitySchema
+        const loaded = require(path.join(pluginDetails.resolve, fn)) as ClassConstructor<unknown> | EntitySchema
 
         Object.entries(loaded).map(
             ([, val]: [string, ClassConstructor<unknown> | EntitySchema]) => {

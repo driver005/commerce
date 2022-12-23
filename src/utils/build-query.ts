@@ -92,23 +92,23 @@ export function buildQuery<TWhereKeys, TEntity = unknown>(
         query.withDeleted = true
     }
 
-    if (selector['skip']) {
+    if (config['skip']) {
         query.skip = config.skip
     }
 
-    if (selector['take']) {
+    if (config['take']) {
         query.take = config.take
     }
 
-    if (selector['relations']) {
+    if (config['relations']) {
         query.relations = config.relations
     }
 
-    if (selector['select']) {
+    if (config['select']) {
         query.select = config.select
     }
 
-    if (selector['order']) {
+    if (config['order']) {
         query.order = config.order as any
     }
 
